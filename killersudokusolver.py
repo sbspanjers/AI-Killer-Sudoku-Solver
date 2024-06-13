@@ -1,14 +1,33 @@
+import tkinter as tk
+from tkinter import messagebox
 import numpy as np
 import time
 
-class KillerSudokuSolver:
-    def __init__(self):
+class KillerSudokuGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Killer Sudoku")
         self.board = np.zeros((9, 9), dtype=int)
-        self.cages = self.generate_killer_sudoku()
+        self.cages = {}
+        self.create_widgets()
+        self.counter = 0
         self.total = 0
 
+    def create_widgets(self):
+        self.entries = [[None]*9 for _ in range(9)]
+        for i in range(9):
+            for j in range(9):
+                self.entries[i][j] = tk.Label(self.root, width=3, height=1, font=('Arial', 18), relief=tk.RIDGE, borderwidth=2)
+                self.entries[i][j].grid(row=i, column=j)
+
+        self.generate_killer_sudoku()
+        self.display_cages()
+        
+        solve_button = tk.Button(self.root, text="Solve", command=self.solve)
+        solve_button.grid(row=9, column=4, columnspan=2)
+
     def generate_killer_sudoku(self):
-        return {
+        self.cages = {
             ((0, 0), (0, 1)): 3,
             ((0, 2), (0, 3), (0, 4)): 15,
             ((0, 5), (1, 5), (1, 4), (2, 4)): 22,
@@ -40,30 +59,53 @@ class KillerSudokuSolver:
             ((8, 7), (8, 8)): 17
         }
 
-    def solve(self):
-        self.start_time = time.time()
-        if self.ai_solve_process():
-            self.log_solution()
-        else:
-            print("No solution exists.")
+    def display_cages(self):
+        colors = ['lightblue', 'lightgreen', 'lightyellow', 'lightpink', 'lightcoral', 'lightgray', 'lightcyan', 'lightseagreen', 'lightsalmon', 'lightsteelblue']
+        i = 0
+        for cells, value in self.cages.items():
+            for cell in cells:
+                row, col = cell
+                self.entries[row][col].config(bg=colors[i])
+            sum_label = tk.Label(self.root, text=value, font=('Arial', 10))
+            # Offset the sum label slightly to the top left corner of the cell
+            sum_label.grid(row=cells[0][0], column=cells[0][1], sticky="nw")
+            i = (i + 1) % len(colors)
+
+    def update_gui(self):
+        for i in range(9):
+            for j in range(9):
+                cell_text = str(self.board[i][j]) if self.board[i][j] != 0 else ''
+                self.entries[i][j].config(text=cell_text)
+        self.root.update()
 
     def ai_solve_process(self):
         empty_cell = self.find_empty_cell()
         if empty_cell is None:
+            print(f"Total: {self.total}")
+            self.update_gui()
             return True
         
         row, col = empty_cell
 
         for num in range(1, 10):
-            self.total += 1
             if self.is_safe(row, col, num):
                 self.board[row][col] = num
+                self.counter += 1
+                self.total += 1
+
+                if self.counter == 1000:
+                    self.update_gui()
+                    self.counter = 0
+
                 if self.ai_solve_process():
                     return True
                 
                 self.board[row][col] = 0
 
         return False
+
+    def solve(self):
+        self.ai_solve_process()
 
     def find_empty_cell(self):
         for i in range(9):
@@ -99,6 +141,8 @@ class KillerSudokuSolver:
                 current_sum = sum(self.board[r][c] for r, c in cage_cells if self.board[r][c] != 0) + num
                 
                 if len([1 for r, c in cage_cells if self.board[r][c] == 0]) == 1:
+                    # If the current cell being filled is the last one in the cage,
+                    # ensure the sum equals the cage sum
                     return current_sum == cage_sum
                 
                 elif current_sum >= cage_sum:
@@ -106,16 +150,10 @@ class KillerSudokuSolver:
         
         return True
 
-    def log_solution(self):
-        print("Killer Sudoku Solved:")
-        print("Run time: %s seconds" % (time.time() - self.start_time))
-        print("Total count: %s" % self.total)
-        for row in self.board:
-            print(" ".join(map(str, row)))
-
 def main():
-    solver = KillerSudokuSolver()
-    solver.solve()
+    root = tk.Tk()
+    app = KillerSudokuGUI(root)
+    root.mainloop()
 
 if __name__ == "__main__":
     main()
