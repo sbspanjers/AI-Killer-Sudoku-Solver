@@ -11,7 +11,7 @@ class KillerSudokuGUI:
         self.cages = {}
         self.create_widgets()
         self.counter = 0
-        self.total = 0
+        self.total_counter = 0
 
     def create_widgets(self):
         self.entries = [[None]*9 for _ in range(9)]
@@ -67,7 +67,6 @@ class KillerSudokuGUI:
                 row, col = cell
                 self.entries[row][col].config(bg=colors[i])
             sum_label = tk.Label(self.root, text=value, font=('Arial', 10))
-            # Offset the sum label slightly to the top left corner of the cell
             sum_label.grid(row=cells[0][0], column=cells[0][1], sticky="nw")
             i = (i + 1) % len(colors)
 
@@ -78,44 +77,52 @@ class KillerSudokuGUI:
                 self.entries[i][j].config(text=cell_text)
         self.root.update()
 
-    def ai_solve_process(self, start_time):
-        empty_cell = self.find_empty_cell()
-        if empty_cell is None:
-            print("Sudoku opgelost!")
-            print(f"Aantal iteraties: {self.total}")
-            print(f"Oplossing gevonden in {time.time() - start_time:.2f} seconden.")
+    def solve(self):
+        start_time = time.time()
+        sorted_cages = sorted(self.cages.items(), key=lambda x: x[1])
+        if self.solve_by_cages(sorted_cages):
             self.update_gui()
+            print("Sudoku opgelost!")
+            print("Aantal iteraties: {}".format(self.total_counter))
+            print("Tijd: {:.2f} seconden".format(time.time() - start_time))
+        else:
+            print("Geen oplossing gevonden.")
+
+    def solve_by_cages(self, sorted_cages):
+        if not sorted_cages:
             return True
+        cage_cells, cage_sum = sorted_cages[0]
+        remaining_cages = sorted_cages[1:]
         
-        row, col = empty_cell
+        empty_cells = [(r, c) for r, c in cage_cells if self.board[r][c] == 0]
+        if not empty_cells:
+            return sum(self.board[r][c] for r, c in cage_cells) == cage_sum
 
+        return self.solve_cage(cage_cells, cage_sum, empty_cells, remaining_cages)
+
+    def solve_cage(self, cage_cells, cage_sum, empty_cells, remaining_cages):
+        if not empty_cells:
+            if sum(self.board[r][c] for r, c in cage_cells) == cage_sum:
+                if self.solve_by_cages(remaining_cages):
+                    return True
+            return False
+
+        r, c = empty_cells[0]
         for num in range(1, 10):
-            if self.is_safe(row, col, num):
-                self.board[row][col] = num
+            if self.is_safe(r, c, num):
                 self.counter += 1
-                self.total += 1
+                self.total_counter += 1
 
-                if self.counter == 100:
+                if self.counter == 1000:
                     self.update_gui()
                     self.counter = 0
-
-                if self.ai_solve_process(start_time):
+                self.board[r][c] = num
+                if self.solve_cage(cage_cells, cage_sum, empty_cells[1:], remaining_cages):
                     return True
-                
-                self.board[row][col] = 0
+                self.board[r][c] = 0
 
         return False
 
-    def solve(self):
-        self.ai_solve_process(time.time())
-
-    def find_empty_cell(self):
-        for i in range(9):
-            for j in range(9):
-                if self.board[i][j] == 0:
-                    return i, j
-        return None
-    
     def is_safe(self, row, col, num):
         return (
             self.is_row_safe(row, num) and
@@ -143,8 +150,6 @@ class KillerSudokuGUI:
                 current_sum = sum(self.board[r][c] for r, c in cage_cells if self.board[r][c] != 0) + num
                 
                 if len([1 for r, c in cage_cells if self.board[r][c] == 0]) == 1:
-                    # If the current cell being filled is the last one in the cage,
-                    # ensure the sum equals the cage sum
                     return current_sum == cage_sum
                 
                 elif current_sum >= cage_sum:
