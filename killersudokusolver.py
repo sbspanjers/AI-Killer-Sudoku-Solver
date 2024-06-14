@@ -78,13 +78,10 @@ class KillerSudokuGUI:
                 self.entries[i][j].config(text=cell_text)
         self.root.update()
 
-    def ai_solve_process(self, start_time):
+    def ai_solve_process(self):
         empty_cell = self.find_empty_cell()
-        if empty_cell is None:
-            print("Sudoku opgelost!")
-            print(f"Aantal iteraties: {self.total}")
-            print(f"Oplossing gevonden in {time.time() - start_time:.2f} seconden.")
-            self.update_gui()
+
+        if empty_cell is None:    
             return True
         
         row, col = empty_cell
@@ -99,7 +96,7 @@ class KillerSudokuGUI:
                     self.update_gui()
                     self.counter = 0
 
-                if self.ai_solve_process(start_time):
+                if self.ai_solve_process():
                     return True
                 
                 self.board[row][col] = 0
@@ -107,7 +104,13 @@ class KillerSudokuGUI:
         return False
 
     def solve(self):
-        self.ai_solve_process(time.time())
+        start_time = time.time()
+        if self.ai_solve_process():
+            end_time = time.time()
+            print("Sudoku opgelost!")
+            print(f"Aantal iteraties: {self.total}")
+            print(f"Oplossing gevonden in {end_time - start_time:.2f} seconden.")
+            self.update_gui()
 
     def find_empty_cell(self):
         for i in range(9):

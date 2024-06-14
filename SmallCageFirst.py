@@ -81,10 +81,11 @@ class KillerSudokuGUI:
         start_time = time.time()
         sorted_cages = sorted(self.cages.items(), key=lambda x: (len(x[0]), x[1]))
         if self.solve_by_cages(sorted_cages):
+            end_time = time.time()
             self.update_gui()
             print("Sudoku opgelost!")
             print("Aantal iteraties: ", self.total_counter)
-            print("Tijd: {:.2f} seconden".format(time.time() - start_time))
+            print("Tijd: {:.2f} seconden".format(end_time - start_time))
         else:
             print("Geen oplossing gevonden.")
 
