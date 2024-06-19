@@ -105,7 +105,7 @@ class KillerSudokuGUI:
             self.col_values[col].add(num)
             self.box_values[(row // 3) * 3 + (col // 3)].add(num)
 
-            if self.counter == 10:  # Update the GUI every 100 iterations
+            if self.counter == 100:  # Update the GUI every 100 iterations
                 self.update_gui()
                 self.counter = 0
 
