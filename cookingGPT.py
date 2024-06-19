@@ -80,8 +80,6 @@ class KillerSudokuGUI:
 
     def ai_solve_process(self):
         empty_cell = self.find_empty_cell()
-        self.counter += 1
-        self.total_counter += 1
 
         if empty_cell is None:
             return True
@@ -91,6 +89,8 @@ class KillerSudokuGUI:
         for num in range(1, 10):
             if self.is_safe(row, col, num):
                 self.board[row][col] = num
+                self.counter += 1
+                self.total_counter += 1
 
                 if self.counter == 100:
                     self.counter = 0
