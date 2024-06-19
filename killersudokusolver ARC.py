@@ -139,12 +139,12 @@ class KillerSudokuGUI:
         row, col = cell.row, cell.col
 
         for num in cell.possibleValues:
+            self.total += 1
             if self.is_safe(row, col, num):
                 self.board[row][col].value = num
                 self.arc_consistency(self.board[row][col])
 
                 self.counter += 1
-                self.total += 1
 
                 if self.counter == 100000:
                     self.update_gui()

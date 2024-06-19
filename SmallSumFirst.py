@@ -110,9 +110,9 @@ class KillerSudokuGUI:
 
         r, c = empty_cells[0]
         for num in range(1, 10):
+            self.total_counter += 1
             if self.is_safe(r, c, num):
                 self.counter += 1
-                self.total_counter += 1
 
                 if self.counter == 100:
                     self.update_gui()
