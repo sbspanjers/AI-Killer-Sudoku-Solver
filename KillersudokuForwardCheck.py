@@ -90,7 +90,6 @@ class KillerSudokuGUI:
     def ai_solve_process(self):
         empty_cell = self.find_empty_cell()  # Find an empty cell
         self.counter += 1
-        self.total_counter += 1
 
         if empty_cell is None:
             return True  # If no empty cell is found, the board is solved
@@ -99,6 +98,7 @@ class KillerSudokuGUI:
         remaining_values = list(self.remaining_values[(row, col)])  # Get remaining values for the current cell
 
         for num in remaining_values:
+            self.total_counter += 1
             if self.is_safe(row, col, num):
                 self.board[row][col] = num
                 # Update tracking sets
@@ -107,8 +107,8 @@ class KillerSudokuGUI:
                 self.box_values[(row // 3) * 3 + (col // 3)].add(num)
 
                 if self.counter == 100:  # Update the GUI every 100 iterations
-                    self.counter = 0
                     self.update_gui()
+                    self.counter = 0
 
                 original_remaining_values = self.save_remaining_values()  # Save current state
 
